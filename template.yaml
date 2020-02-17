@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  pandas-csv-example
+
+  Sample SAM Template for pandas-csv-example
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  MyCsvBucket:
+    Type: AWS::S3::Bucket
+  ProcessCsvFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: process_csv/
+      Handler: app.lambda_handler
+      Layers:
+        - arn:aws:lambda:us-east-1:111111111111:layer:pythonlayer:2
+      Runtime: python3.8
+      Environment:
+        Variables:
+          S3Bucket: !Ref MyCsvBucket
+      Events:
+        UploadCsvEvent:
+          Type: S3
+          Properties:
+            Bucket: MyCsvBucket # bucket must be created in the same template
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: raw
+  # example of managing a layer in a template.  New version goes up with every build though.... 
+  # PandasLayer:
+  #   Type: AWS::Serverless::LayerVersion
+  #   Properties:
+  #       LayerName: python-app-dependencies
+  #       Description: Dependencies for process_csv app
+  #       ContentUri: custom_layer/
+  #       CompatibleRuntimes:
+  #         - python3.8
+  #       LicenseInfo: 'MIT'
+  #       RetentionPolicy: Retain
+  # GetCsvResultsFunction:
+  #   Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  #   Properties:
+  #     CodeUri: process_csv/
+  #     Handler: app.lambda_handler
+  #     Runtime: python3.8
+  #     Events:
+  #       HelloWorld:
+  #         Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+  #         Properties:
+  #           Path: /hello
+  #           Method: get
+
