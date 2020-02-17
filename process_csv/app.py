@@ -44,6 +44,8 @@ def lambda_handler(event, context):
         key = unquote_plus(record['s3']['object']['key'])
         df = pd.read_csv('s3://'+bucket+'/'+key)
         # do some work
+        df = df.corr()
+        print(df.head(1))
         
         csv_buffer = StringIO()
         df.to_csv(csv_buffer)
